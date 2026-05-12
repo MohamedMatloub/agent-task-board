@@ -1,58 +1,39 @@
 ---
-name: project-board
-description: Agent skill for setting up and managing a markdown-based project task board, featuring epics, tasks, and an automated agent workflow.
+name: agent-task-board
+description: Skill for setting up and managing a markdown-based project task board, featuring epics, tasks, and an agent-friendly workflow.
 ---
 
-# Project Board Skill
+# Agent Task Board Skill
 
-This skill provides a standardized, markdown-based issue tracker and project management board that resides directly in the codebase under the `board/` directory.
+This skill provides a standardized, markdown-based issue tracker and project management board that resides directly in the codebase under the `board/` directory. It is designed to work across agent runtimes because all state is stored in plain Markdown files in the repository.
 
 ## When to use this skill
 - When the user asks to set up a task board or project tracking system.
-- When working in a project that has a `board/` directory or an `AGENTS.md` file defining this workflow.
-- When creating, claiming, or resolving tasks across epics and features.
+- When working in a project whose existing instructions or source of truth define this workflow.
+- When the user asks to create, plan, claim, pick, prioritize, update, review, or complete project tasks.
+- When the user asks what to work on next, asks for a task plan, or asks to break work into tasks.
 
 ## Setup Instructions
 
-If the user requests to initialize this setup in a new project:
+Initialize the board when either condition is true:
 
-1. Run the initialization script from the skill directory to scaffold the necessary directories and templates:
-   `bash ~/.gemini/antigravity/skills/project-board/scripts/init_board.sh`
-   *(Note: use a bash `run_command` inside the project root to execute this script)*
-2. This will create:
-   - `AGENTS.md` in the root
+- The user explicitly asks to set up or initialize an agent task board.
+- The user asks for board-backed task work, such as creating a task, planning tasks, choosing the next task, claiming work, or updating task status, and the target project does not already have `board/README.md`.
+
+Do not ask the user for a separate setup confirmation before initializing in response to board-backed task work. The initializer only creates missing board files and does not modify existing project instruction files.
+
+If `board/` exists but `board/README.md`, `board/features/`, `board/done/`, or `board/_templates/` is missing, run the initializer to repair the incomplete setup before continuing.
+
+To initialize:
+
+1. From the target project root, run the initialization script from this skill's installed directory:
+   `bash /path/to/agent-task-board/scripts/init_board.sh`
+   Replace `/path/to/agent-task-board` with the actual directory where this skill is installed. Agents should use whatever shell-command tool their runtime provides.
+2. This will create missing board files and leave existing project instruction files untouched:
    - `board/README.md`
    - `board/features/` and `board/done/` directories
    - `board/_templates/` with Epic, Feature, and Task templates
-   - `tasks/lessons.md`
 
-## Agent Workflow Rules
+## Usage After Setup
 
-When working in a repository with this setup, follow these strict rules:
-
-### Board Layout
-- `board/features/` contains active, blocked, review, and partially done feature folders.
-- `board/done/` contains fully completed feature folders, including their epics and tasks.
-- `board/_templates/` contains the Markdown templates for new features, epics, and tasks.
-
-### Status Values
-Use EXACTLY these values in feature, epic, and task metadata:
-- `Todo`
-- `Doing`
-- `Review`
-- `Done`
-
-### Task Management Workflow
-1. **Claim Work:** Pick an unowned `Todo` task from a feature in `board/features/`.
-2. **Start Work:** Set the task's `status: Doing`, fill in `owner: Antigravity`, set `started: YYYY-MM-DD`, and add a progress log entry.
-3. **Implement:** Write code, implement the task, and verify your changes. Keep changes minimal and scoped to the task.
-4. **Complete Work:** Set the task's `status: Done`, set `finished: YYYY-MM-DD`, and record verification/implementation notes in the task file.
-5. **Update Parent Epic:** Go to the parent `EPIC.md` file. Update the task checklist to `[x]` and update the progress percentage.
-6. **Update Parent Feature:** Go to the parent `FEATURE.md` file. If the epic's progress changed, update it there.
-7. **Complete Feature:** If all epics in a feature are `Done`, move the entire feature folder from `board/features/` to `board/done/`.
-8. **Learn:** If you make a mistake and the user corrects you, add a note to `tasks/lessons.md` so the mistake is not repeated.
-
-### Documentation Files
-- **`Features.md` (Optional project-level file)**: Describes feature intent and major design decisions. Do NOT duplicate task progress here; link to the board instead.
-- **`tasks/lessons.md`**: Project-specific mistakes to avoid. Always read before implementing.
-- **`DEVELOPER_NOTES.md`**: Mocked features, placeholders, and architecture notes. Update only when architecture changes.
+After initialization, `board/README.md` is the source of truth for board layout, status values, active features, done features, and the agent workflow. Agents should read it before creating, claiming, updating, or completing board tasks.

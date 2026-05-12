@@ -16,7 +16,7 @@ Describe the feature goal and user value.
 Describe the next task agents should pick.
 
 ## Constraints
-- Follow `AGENTS.md`.
+- Follow the project's source of truth and `board/README.md`.
 - Update this file when epic progress changes.
 
 ## Agent Update Rules

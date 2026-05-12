@@ -17,7 +17,7 @@ Describe the task and expected outcome.
 3. Verify the change.
 
 ## Constraints
-- Follow `AGENTS.md`.
+- Follow the project's source of truth and `board/README.md`.
 - Keep changes scoped to this task.
 
 ## Previous Implementation Details

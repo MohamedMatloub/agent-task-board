@@ -1,17 +1,6 @@
-# Project Board
+# Agent Task Board
 
 This directory is the primary source of truth for project work. Agents and humans should use this board before starting, claiming, or completing tasks.
-
-`Features.md` describes feature intent and major design decisions. `board/` owns task status, ownership, and progress. Do not duplicate task progress in `Features.md`; link to the relevant board feature instead.
-
-## Read Order
-1. `board/README.md`
-2. `Features.md`
-3. `tasks/todo.md`
-4. `tasks/lessons.md`
-5. `DEVELOPER_NOTES.md`
-
-Read `DEVELOPER_NOTES.md` before implementation, after checking the board, feature plan, and lessons. Update it only when mocked features, placeholders, or architecture notes change.
 
 ## Status Values
 Use exactly these values in feature, epic, and task metadata:
@@ -42,7 +31,7 @@ When every epic in a feature is `Done`, move the entire feature folder from `boa
 5. Update the parent `EPIC.md` task list and progress.
 6. Update the parent `FEATURE.md` epic list and progress.
 7. If all epics are `Done`, move the whole feature folder to `board/done/`.
-8. If new presidential constraints affect other work, update related tasks.
+8. If new constraints affect other work, update related tasks.
 
 ## Project Constraints
 - Keep task changes minimal and scoped to the claimed task.
