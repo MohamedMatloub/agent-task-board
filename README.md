@@ -11,7 +11,7 @@ Agent Task Board is an agent-friendly skill for creating and managing a Markdown
 Install from the published repository with `npx skills add`:
 
 ```bash
-npx skills add owner/repo --skill agent-task-board
+npx skills add https://github.com/MohamedMatloub/project-board-skill --skill agent-task-board
 ```
 
 ## How To Use
