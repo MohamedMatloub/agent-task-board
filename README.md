@@ -1,53 +1,130 @@
 # Agent Task Board Skill
 
-Agent Task Board is an agent-friendly skill for creating and managing a Markdown task board inside a repository. It stores project work in plain files under `board/`, so agents and humans can inspect, edit, and review task state without an external tracker.
+Agent Task Board is a lightweight Markdown workflow for AI agents and humans. It keeps project state in a local `board/` folder so work can be planned, claimed, handed off, reviewed, and completed without external trackers.
 
-## Why Use It
-- Keeps task planning and implementation status in the codebase.
-- Gives agents a consistent workflow for creating, claiming, updating, and completing tasks.
-- Works across agent runtimes because it depends on Markdown files and a shell initializer.
+## Philosophy
 
-## How To Install
-Install from the published repository with `npx skills add`:
+- Local-first Markdown.
+- Low token usage by default.
+- Concise metadata over repeated prose.
+- Append progress; preserve history.
+- Lightweight shell tooling, no services.
+
+## Install
 
 ```bash
 npx skills add https://github.com/MohamedMatloub/project-board-skill --skill agent-task-board
 ```
 
-## How To Use
-Ask your agent to use the skill in the target project. For example:
+## Repository Structure
+
+```text
+project-board-skill/
+  SKILL.md
+  README.md
+  scripts/
+    init_board.sh
+    validate_board.sh
+  templates/
+    BOARD_README.md
+    FEATURE.md
+    EPIC.md
+    TASK.md
+    STATUS.md
+  examples/
+    board/
+  docs/
+```
+
+## Generated Board
+
+```text
+board/
+  README.md
+  status.md
+  features/
+    <feature>/
+      FEATURE.md
+      <epic>/
+        EPIC.md
+        TASK-000.md
+  done/
+  changelog.md
+  decisions.md
+```
+
+## Workflow
+
+1. Read `board/status.md`.
+2. Open only relevant nested task files.
+3. Pick the highest-priority unblocked `Todo` task.
+4. Move it through `Todo -> InProgress -> Blocked -> Review -> Done`.
+5. Append short progress, verification, and handoff notes.
+6. Keep `decisions.md` and `changelog.md` concise.
+7. Move a feature folder to `board/done/` when all nested work is done.
+
+## Optional Git Branch Tracking
+
+On first setup, agents should ask whether to enable git branch tracking. The default is disabled.
+
+```text
+GitBranchTracking: disabled
+BranchPattern: task/TASK-000-short-slug
+BaseBranch: current
+```
+
+When enabled, agents may create or switch task branches and record them in `Branch:`. `BaseBranch: current` means create task branches from the current branch. If `BaseBranch` names a branch, agents should switch only with a clean worktree or user approval. Agents must not stage, commit, or push unless explicitly asked.
+
+## Examples
+
+Ask an agent:
 
 ```text
 Set up an agent task board for this project.
 ```
 
 ```text
-Create a task for adding authentication.
+Create TASK-004 for adding import validation.
 ```
 
 ```text
-Plan the next tasks for this feature.
+Pick the next unblocked P1 task and start it.
 ```
 
-```text
-Pick the next task and start working on it.
+## Token Optimization
+
+Agents should read files hierarchically:
+
+- Start with `board/status.md`.
+- Read only referenced task paths.
+- Read parent feature or epic files only when they clarify scope.
+- Ignore `board/done/` unless history is required.
+- Keep progress logs to one line per update.
+
+## Validation
+
+```bash
+bash scripts/validate_board.sh
 ```
 
-The agent should initialize the project.
+The validator checks:
 
-## What It Creates
-The initializer creates missing board files and leaves existing project instruction files untouched:
+- Task IDs are unique.
+- Task filenames match task IDs.
+- Required fields are present.
+- Status is one of `Todo`, `InProgress`, `Blocked`, `Review`, `Done`.
+- Priority is one of `P0`, `P1`, `P2`, `P3`.
+- Dependencies use `none` or existing comma-separated task IDs.
 
-```text
-board/
-  README.md
-  features/
-  done/
-  _templates/
-    EPIC_TEMPLATE.md
-    FEATURE_TEMPLATE.md
-    TASK_TEMPLATE.md
-```
+## Best Practices
+
+- Use IDs like `TASK-001`, `FEAT-001`, and `EPIC-001`.
+- Use priorities `P0` through `P3`.
+- Use `DependsOn: none` or comma-separated task IDs.
+- Use task branches only when `GitBranchTracking: enabled` or explicitly requested.
+- Never overwrite user notes; append updates.
+- Keep templates structured and short.
 
 ## License
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
+MIT. See [LICENSE](LICENSE).

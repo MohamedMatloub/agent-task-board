@@ -1,39 +1,106 @@
 ---
 name: agent-task-board
-description: Skill for setting up and managing a markdown-based project task board, featuring epics, tasks, and an agent-friendly workflow.
+description: Local Markdown project board for agent task planning, handoffs, status tracking, and low-token workflow.
 ---
 
-# Agent Task Board Skill
+# Agent Task Board
 
-This skill provides a standardized, markdown-based issue tracker and project management board that resides directly in the codebase under the `board/` directory. It is designed to work across agent runtimes because all state is stored in plain Markdown files in the repository.
+Use this skill for local Markdown task boards, project planning, task lifecycle updates, handoffs, and "what next?" requests.
 
-## When to use this skill
-- When the user asks to set up a task board or project tracking system.
-- When working in a project whose existing instructions or source of truth define this workflow.
-- When the user asks to create, plan, claim, pick, prioritize, update, review, or complete project tasks.
-- When the user asks what to work on next, asks for a task plan, or asks to break work into tasks.
+## Principles
 
-## Setup Instructions
+- Local-first: all state lives in `board/`.
+- Token-light: read only what is needed.
+- Append-only progress: never erase user or agent notes.
+- Structured metadata beats prose.
+- No GitHub Projects, database, or external service.
 
-Initialize the board when either condition is true:
+## Setup
 
-- The user explicitly asks to set up or initialize an agent task board.
-- The user asks for board-backed task work, such as creating a task, planning tasks, choosing the next task, claiming work, or updating task status, and the target project does not already have `board/README.md`.
+When `board/status.md` is missing, create the board from this layout and the templates. Prefer the initializer; it creates missing files only.
 
-Do not ask the user for a separate setup confirmation before initializing in response to board-backed task work. The initializer only creates missing board files and does not modify existing project instruction files.
+```bash
+bash /path/to/agent-task-board/scripts/init_board.sh
+```
 
-If `board/` exists but `board/README.md`, `board/features/`, `board/done/`, or `board/_templates/` is missing, run the initializer to repair the incomplete setup before continuing.
+On first setup, ask once whether to enable git branch tracking. If yes, set `GitBranchTracking: enabled` in `board/status.md`. If no or no answer, keep `disabled`.
 
-To initialize:
+## Generated Layout
 
-1. From the target project root, run the initialization script from this skill's installed directory:
-   `bash /path/to/agent-task-board/scripts/init_board.sh`
-   Replace `/path/to/agent-task-board` with the actual directory where this skill is installed. Agents should use whatever shell-command tool their runtime provides.
-2. This will create missing board files and leave existing project instruction files untouched:
-   - `board/README.md`
-   - `board/features/` and `board/done/` directories
-   - `board/_templates/` with Epic, Feature, and Task templates
+```text
+board/
+  README.md
+  status.md
+  features/
+    <feature>/
+      FEATURE.md
+      <epic>/
+        EPIC.md
+        TASK-000.md
+  done/
+  changelog.md
+  decisions.md
+```
 
-## Usage After Setup
+## Read Order
 
-After initialization, `board/README.md` is the source of truth for board layout, status values, active features, done features, and the agent workflow. Agents should read it before creating, claiming, updating, or completing board tasks.
+1. Read `board/status.md`.
+2. Read only task paths named there or relevant to the request.
+3. Read parent `EPIC.md` or `FEATURE.md` only if scope is unclear.
+4. Ignore `board/done/` unless history is requested.
+
+## Task Metadata
+
+Use these fields near the top of every task:
+
+```text
+ID: TASK-000
+Status: Todo
+Priority: P2
+DependsOn: none
+Owner: unassigned
+Branch: none
+```
+
+Valid statuses: `Todo`, `InProgress`, `Blocked`, `Review`, `Done`.
+
+Priorities: `P0` urgent, `P1` high, `P2` normal, `P3` low.
+
+## Workflow
+
+1. Pick the highest-priority unblocked `Todo` task.
+2. Set `Status: InProgress`, set `Owner`, and append one progress line.
+3. Keep changes scoped to the task.
+4. If blocked, set `Status: Blocked`, keep it in place, and list it in `board/status.md`.
+5. When ready, set `Status: Review` and record verification.
+6. After acceptance, set `Status: Done`.
+7. Move a whole feature folder to `board/done/` only when all of its epics/tasks are done.
+
+## Update Rules
+
+- Never overwrite user content blindly.
+- Append progress as one-line dated entries.
+- Keep `board/status.md` current and concise.
+- Record decisions in `board/decisions.md`.
+- Record user-visible changes in `board/changelog.md`.
+- Add handoff notes when another agent may continue.
+
+## Git
+
+- Default: `GitBranchTracking: disabled`.
+- Create or switch branches only when tracking is enabled or the user explicitly asks.
+- Use `BranchPattern` from `board/status.md`.
+- Use `BaseBranch: current` to branch from the current branch.
+- If `BaseBranch` names a branch, switch only with a clean worktree or user approval.
+- Record active task branches in `Branch:`.
+- Never stage, commit, or push unless the user explicitly asks.
+
+## Validation
+
+Run the validator when useful:
+
+```bash
+bash /path/to/agent-task-board/scripts/validate_board.sh
+```
+
+Fix duplicate IDs, missing required fields, filename/ID mismatches, missing dependencies, invalid statuses, and malformed metadata before marking work done.

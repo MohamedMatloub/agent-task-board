@@ -1,31 +1,46 @@
-#!/bin/bash
-# Initializes the agent-task-board structure in the current directory.
-set -e
+#!/usr/bin/env bash
+# Create the nested Markdown agent board in the current project.
+set -eu
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-RESOURCES_DIR="$SKILL_DIR/resources"
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+SKILL_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+TEMPLATE_DIR="$SKILL_DIR/templates"
 
-mkdir -p board/features board/done board/_templates
+mkdir -p board/features board/done
 
 copy_if_missing() {
   source_file="$1"
   target_file="$2"
 
-  if [ -f "$target_file" ]; then
-    echo "Skipped existing $target_file"
-  else
-    cp "$source_file" "$target_file"
-    echo "Created $target_file"
+  if [ -e "$target_file" ]; then
+    printf 'Skipped existing %s\n' "$target_file"
+    return
   fi
+
+  cp "$source_file" "$target_file"
+  printf 'Created %s\n' "$target_file"
 }
 
-# Copy templates to board/_templates without overwriting local changes.
-copy_if_missing "$RESOURCES_DIR/EPIC_TEMPLATE.md" board/_templates/EPIC_TEMPLATE.md
-copy_if_missing "$RESOURCES_DIR/FEATURE_TEMPLATE.md" board/_templates/FEATURE_TEMPLATE.md
-copy_if_missing "$RESOURCES_DIR/TASK_TEMPLATE.md" board/_templates/TASK_TEMPLATE.md
+write_if_missing() {
+  target_file="$1"
+  content="$2"
 
-# Setup the root board README
-copy_if_missing "$RESOURCES_DIR/board_README.md" board/README.md
+  if [ -e "$target_file" ]; then
+    printf 'Skipped existing %s\n' "$target_file"
+    return
+  fi
 
-echo "Agent task board initialized successfully!"
+  printf '%s\n' "$content" > "$target_file"
+  printf 'Created %s\n' "$target_file"
+}
+
+copy_if_missing "$TEMPLATE_DIR/STATUS.md" board/status.md
+copy_if_missing "$TEMPLATE_DIR/BOARD_README.md" board/README.md
+write_if_missing "board/changelog.md" "# Changelog
+
+- $(date +%F): Board created."
+write_if_missing "board/decisions.md" "# Decisions
+
+- $(date +%F): Use local Markdown board state."
+
+printf 'Agent task board ready.\n'
