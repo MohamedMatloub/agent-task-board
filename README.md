@@ -13,13 +13,13 @@ Agent Task Board is a lightweight Markdown workflow for AI agents and humans. It
 ## Install
 
 ```bash
-npx skills add https://github.com/MohamedMatloub/project-board-skill --skill agent-task-board
+npx skills add https://github.com/MohamedMatloub/agent-task-board --skill agent-task-board
 ```
 
 ## Repository Structure
 
 ```text
-project-board-skill/
+agent-task-board/
   SKILL.md
   README.md
   scripts/
